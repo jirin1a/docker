@@ -1,0 +1,19 @@
+FROM tf-vnc
+
+USER root
+
+#### Install some tools here -- add more if generally needed
+RUN apt-get update -y && \
+        apt-get install -y --no-install-recommends \
+                git \
+		sudo \
+                wget && \
+        apt-get clean && \
+        apt-get autoremove -y && \
+        rm -rf /var/lib/apt/lists/*
+
+#### Install anaconda2 & 3
+ADD Anaconda3-5.1.0-Linux-x86_64.sh /tmp/anaconda.sh
+RUN bash /tmp/anaconda.sh -b -p /opt/anaconda3 && \
+	rm /tmp/anaconda.sh
+

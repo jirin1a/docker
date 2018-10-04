@@ -1,0 +1,19 @@
+FROM tools-tf-vnc
+
+MAINTAINER Georgios Kollias "gkollias@us.ibm.com"
+
+# Make sure we are root
+USER root
+
+# Install OPM distribution
+RUN apt-get update \
+&& apt-get install -y software-properties-common
+
+RUN apt-add-repository ppa:opm/ppa \
+&& apt-get update
+
+
+RUN apt-get install -y \
+mpi-default-bin \
+libopm-simulators-bin \
+python-ecl

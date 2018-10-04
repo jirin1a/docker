@@ -1,0 +1,71 @@
+FROM jiri-tf-cpu
+
+
+#### Install build packages
+USER root
+RUN apt-get update -y 
+RUN apt-get install -y --no-install-recommends \
+                build-essential \
+                cmake \
+                gdb \
+                gfortran \
+                libblas-dev \
+                libboost-all-dev \
+                libc6-dbg \
+                libeigen3-dev \
+                libhdf5-dev \
+                liblapack-dev \
+                libsuitesparse-dev libtrilinos-zoltan-dev \
+                mpi-default-dev \
+                pgf \
+                pkg-config \
+		python3-tk \
+                software-properties-common \
+		sudo \
+                valgrind \
+                wget && \
+        apt-get clean && \
+        apt-get autoremove -y && \
+        rm -rf /var/lib/apt/lists/*
+
+#### Install various
+USER root
+RUN apt-get update -y && \
+        apt-get install -y --no-install-recommends \
+		criu \
+                less \
+                git \
+		ipython3 \
+		octave \
+		xterm \
+		ssh \
+		emacs && \
+        apt-get clean && \
+        apt-get autoremove -y && \
+        rm -rf /var/lib/apt/lists/*
+USER root
+RUN pip install tflearn
+
+#### Install PyCharm
+ENV PC_VERSION="pycharm-community-2018.1.2"
+RUN wget https://download.jetbrains.com/python/${PC_VERSION}.tar.gz -O /tmp/pycharm.tar.gz && \
+	mkdir -p /opt/pycharm && \
+        tar zxvf /tmp/pycharm.tar.gz --strip-components=1 -C /opt/pycharm && \
+        rm -f /tmp/pycharm.tar.gz
+
+#Add user
+ENV USER=jiri
+ENV UID=1015
+ENV GID=1015
+
+USER root
+RUN useradd -m $USER && \
+        echo "$USER:$USER" | chpasswd && \
+        usermod --shell /bin/bash $USER && \
+        usermod -aG sudo $USER && \
+        echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USER && \
+        chmod 0440 /etc/sudoers.d/$USER && \
+        usermod  --uid ${UID} $USER && \
+        groupmod --gid ${GID} $USER
+
+USER ${USER}

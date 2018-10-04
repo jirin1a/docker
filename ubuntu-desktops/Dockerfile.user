@@ -1,0 +1,36 @@
+# base image generated from
+#     tensorflow/tensorflow:latest-gpu-py3
+#     consol/ubuntu-xfce-vnc
+# and with added tools
+#     clion
+#     pycharm
+#     miniconda2, and 3
+#
+FROM tools-tf-vnc
+
+# Enter your user information
+ENV USER=jiri
+ENV UID=1015
+ENV GID=1015
+
+# Switch to root and add user as member of sudo group
+USER root
+RUN useradd -m $USER && \
+        echo "$USER:$USER" | chpasswd && \
+        usermod --shell /bin/bash $USER && \
+        usermod -aG sudo $USER && \
+        echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USER && \
+        chmod 0440 /etc/sudoers.d/$USER && \
+        usermod  --uid ${UID} $USER && \
+        groupmod --gid ${GID} $USER
+
+# Add any packages you need by uncommenting the lines as required
+RUN apt-get update -y && \
+        apt-get install -y --no-install-recommends \
+                xterm && \
+        apt-get clean && \
+        apt-get autoremove -y && \
+        rm -rf /var/lib/apt/lists/*
+
+# Switch to user
+USER ${USER}
