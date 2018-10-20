@@ -1,0 +1,100 @@
+FROM jiri-tf-gpu
+
+
+#### Install build packages
+USER root
+RUN apt-get update -y && \
+    apt upgrade -y 
+RUN apt-get install -y --no-install-recommends \
+                build-essential \
+                cmake \
+                gdb \
+                gfortran \
+                libblas-dev \
+                libboost-all-dev \
+                libc6-dbg \
+                libeigen3-dev \
+                libhdf5-dev \
+                liblapack-dev \
+                libsuitesparse-dev libtrilinos-zoltan-dev \
+                mpi-default-dev \
+                pgf \
+                pkg-config \
+		python3-tk \
+		python3-setuptools \
+		python3-pip \
+                software-properties-common \
+		sudo \
+                valgrind \
+                wget \
+		criu \
+                less \
+                git \
+		ipython \
+		ipython3 \
+		octave \
+		xterm \
+		ssh \
+		emacs && \
+        apt-get clean && \
+        apt-get autoremove -y && \
+        rm -rf /var/lib/apt/lists/*
+USER root
+RUN pip3 install tflearn
+
+#### Install PyCharm
+ENV PC_VERSION="pycharm-community-2018.1.2"
+RUN wget https://download.jetbrains.com/python/${PC_VERSION}.tar.gz -O /tmp/pycharm.tar.gz && \
+	mkdir -p /opt/pycharm && \
+        tar zxvf /tmp/pycharm.tar.gz --strip-components=1 -C /opt/pycharm && \
+        rm -f /tmp/pycharm.tar.gz
+
+# Eclipse Library and support for Python
+RUN pip install cwrap pandas pyqt5
+
+WORKDIR /app
+
+RUN git clone https://github.com/Statoil/libecl.git \
+&& ln -sf  /usr/bin/python3.5 /usr/bin/python \
+&& cd libecl \
+&& mkdir build \
+&& cd build \
+&& cmake -D ENABLE_PYTHON=ON .. \
+&& make \
+&& make install
+
+ENV PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3.5/dist-packages
+
+RUN git clone https://github.com/Statoil/libres.git \
+&& cd libres \
+&& mkdir build \
+&& cd build \
+&& cmake -D ENABLE_PYTHON=ON -DCMAKE_MODULE_PATH=/usr/local/share/cmake/Modules .. \
+&& make \
+&& make install
+
+RUN git clone https://github.com/Statoil/ert.git \
+&& cd ert \
+&& mkdir build \
+&& cd build \
+&& cmake -D ENABLE_PYTHON=ON -DCMAKE_MODULE_PATH=/usr/local/share/cmake/Modules .. \
+&& make \
+&& make install
+
+
+#Add user
+ENV USER=jiri
+ENV UID=1015
+ENV GID=1015
+
+USER root
+RUN useradd -m $USER && \
+        echo "$USER:$USER" | chpasswd && \
+        usermod --shell /bin/bash $USER && \
+        usermod -aG sudo $USER && \
+        echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USER && \
+        chmod 0440 /etc/sudoers.d/$USER && \
+        usermod  --uid ${UID} $USER && \
+        groupmod --gid ${GID} $USER
+
+USER ${USER}
