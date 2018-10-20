@@ -35,6 +35,7 @@ RUN apt-get install -y --no-install-recommends \
 		octave \
 		xterm \
 		ssh \
+		ubuntu-wallpapers-xenial \
 		emacs && \
         apt-get clean && \
         apt-get autoremove -y && \
